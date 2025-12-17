@@ -53,6 +53,10 @@ class Transformer(Configurable):
         example[K.SPEECH_FEATURES] = self.transform_obs(obs)
         example[K.NUM_FRAMES] = example[K.SPEECH_FEATURES].shape[-2]
         if K.TARGET_TIME_VAD in example:
+            if self.resample:
+                target = example[K.TARGET_TIME_VAD]
+                target = target[..., :target.shape[-1] // 2 * 2]
+                example[K.TARGET_TIME_VAD] = target.reshape(1, -1, 2).max(axis=-1)
             example[K.TARGET_VAD] = self.activity_time_to_frequency(
                 example[K.TARGET_TIME_VAD],
                 self.stft.window_length, self.stft.shift, self.stft.pad
