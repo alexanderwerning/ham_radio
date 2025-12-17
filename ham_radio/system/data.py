@@ -14,6 +14,8 @@ from paderbox.array.interval import ArrayInterval
 from paderbox.transform import STFT
 from padertorch.base import Configurable
 from lazy_dataset.core import FilterException
+import torchaudio
+import torch
 
 
 class Transformer(Configurable):
@@ -23,16 +25,22 @@ class Transformer(Configurable):
         super().finalize_dogmatic_config(config)
         config['stft'] = dict(factory=STFT, size=256, shift=80,
                               window_length=200, fading=False)
+        config['resample'] = False
 
-    def __init__(self, stft, log=False):
+    def __init__(self, stft, log=False, resample=False):
         self.stft = stft
         self.log = log
+        if resample:
+            self.resample = \
+                torchaudio.transforms.Resample(orig_freq=16000, new_freq=8000)
+        else:
+            self.resample = None
 
     def inverse(self, signal):
         return self.stft.inverse(signal)
 
     def __call__(self, example):
-        if isinstance(example, (list, tuple, collections.Generator)):
+        if not isinstance(example, dict): # or isinstance(example, (list, tuple, collections.Generator)):
             return [self.transform(ex) for ex in example]
         else:
             return self.transform(example)
@@ -55,6 +63,8 @@ class Transformer(Configurable):
         return example
 
     def transform_obs(self, signal):
+        if self.resample:
+            signal = self.resample(torch.from_numpy(signal)).numpy()
         signal_stft = self.stft(signal)
         feature = np.abs(signal_stft)
 
@@ -102,7 +112,7 @@ class Transformer(Configurable):
             stft_shift,
             stft_pad
     ):
-        assert np.asarray(time_activity).dtype != np.object, (
+        assert np.asarray(time_activity).dtype != object, (
             type(time_activity), np.asarray(time_activity).dtype)
         time_activity = np.asarray(time_activity)
 
@@ -225,19 +235,20 @@ class RadioProvider(Configurable):
 
     def read_audio(self, example):
         """Function to be mapped on an iterator."""
-        if K.START in example and K.END in example:
-            example[K.AUDIO_DATA] = {
-                key: pb.io.load_audio(
-                    example[K.AUDIO_PATH][key], start=example['start'],
-                    frames=example[K.NUM_SAMPLES]
-                )
-                for key in self.audio_keys
-            }
-        else:
-            example[K.AUDIO_DATA] = {
-                key: pb.io.load_audio(example[K.AUDIO_PATH][key])
-                for key in self.audio_keys
-            }
+        if K.AUDIO_DATA not in example or K.OBSERVATION not in example[K.AUDIO_DATA]:
+            if K.START in example and K.END in example:
+                example[K.AUDIO_DATA] = {
+                    key: pb.io.load_audio(
+                        example[K.AUDIO_PATH][key], start=example['start'],
+                        frames=example[K.NUM_SAMPLES]
+                    )
+                    for key in self.audio_keys
+                }
+            else:
+                example[K.AUDIO_DATA] = {
+                    key: pb.io.load_audio(example[K.AUDIO_PATH][key])
+                    for key in self.audio_keys
+                }
         if K.DELAY in example and K.SPEECH_SOURCE in self.audio_keys:
             delay = example[K.DELAY]
             source = example[K.AUDIO_DATA][K.SPEECH_SOURCE]

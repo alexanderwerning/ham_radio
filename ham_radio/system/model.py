@@ -129,6 +129,7 @@ class SADModel(pt.Model):
 
     def forward(self, inputs):
         x = inputs[K.SPEECH_FEATURES]
+        x = x[...,1:]
         if self.norm is not None:
             if self.norm == 'l2_norm':
                 x -= torch.mean(x, dim=-2, keepdim=True)
