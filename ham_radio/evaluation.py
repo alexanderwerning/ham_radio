@@ -135,7 +135,10 @@ def evaluate(example, model, provider, segments, num_ths, buffer):
     segmented_model_out = torch.max(
         segmented_model_out, dim=1)[0].detach().numpy()
     toc = (time() - tic) / example['num_samples'] * 8000
-    annotation = ArrayInterval.from_str(*example[K.ALIGNMENT_ACTIVITY])[:]
+    if K.ALIGNMENT_ACTIVITY in example:
+        annotation = ArrayInterval.from_str(*example[K.ALIGNMENT_ACTIVITY])[:]
+    else:
+        annotation = ArrayInterval.from_str(*example[K.ACTIVITY])[:]
     annotation = adjust_annotation_fn(
         annotation, sample_rate, buffer_zone=buffer)
 
