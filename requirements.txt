@@ -1,0 +1,9 @@
+numpy
+Cython
+torch
+sacred
+lazy_dataset
+jsonpickle
+paderbox @ git+http://github.com/fgnt/paderbox
+padertorch @ git+https://github.com/fgnt/padertorch
+pillow

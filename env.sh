@@ -1,0 +1,10 @@
+export HAM_RADIO_JSON=/net/vol/jenkins/jsons/ham_radio.json
+export HAM_RADIO_JSON_PATH=/net/vol/jenkins/jsons/ham_radio.json
+export HAM_RADIO_DB=/net/db/ham_radio/
+export MODEL_DIR=/net/vol/werning/ham_radio/models/
+export LIBRISPEECH_JSON_PATH=/net/vol/jenkins/jsons/librispeech.json
+export LIBRISPEECH_VAD_PATH=/net/vol/werning/jsons/librispeech_vad.json
+export LIBRISPEECH_VAD_JSON_PATH=/net/vol/werning/jsons/librispeech_with_vad.json
+export RIR_SCENARIO_JSON_PATH=/net/db/rirs_sms_wsj_8spk_16k/scenarios.json
+export MUSAN_JSON_PATH=/net/vol/jenkins/jsons/musan.json
+export MEETING_VAD_JSON_PATH=/net/vol/werning/jsons/vad_meetings.json
