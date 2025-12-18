@@ -28,8 +28,7 @@ def config():
     segments = None
     buffer = 1
     out_dir = None
-    num_jobs = os.cpu_count()
-
+    num_jobs = 16
 
 def adjust_annotation_fn(annotation, sample_rate, buffer_zone=1):
     '''
@@ -160,6 +159,9 @@ def evaluate(example, model, provider, segments, num_ths, buffer):
             model_out, provider.transform.stft.window_length,
             provider.transform.stft.shift
         )
+        # check if sample rate matches (8kHz vs 16kHz model)
+        if vad.shape[-1] * 1.5 < annotation.shape[-1]:
+            annotation = annotation[:annotation.shape[-1] // 2 * 2].reshape(-1, 2).max(axis=-1)
         num_samples = min(annotation.shape[-1], vad.shape[-1])
         # num_samples = min(annotation.shape[-1], vad.shape[-1])
         tp_fp_tn_fn[idx] = np.array(get_tp_fp_tn_fn(
